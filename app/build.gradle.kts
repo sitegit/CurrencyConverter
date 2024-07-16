@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -18,6 +19,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val key = property("apikey")?.toString() ?: error(
+            "Api key was not found, it must be added to gradle.properties"
+        )
+
+        buildConfigField("String", "EXCHANGE_API_KEY", "\"$key\"")
     }
 
     buildTypes {
@@ -38,9 +45,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -50,6 +58,10 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.gsonConverter)
+    implementation(libs.okhttp3.logging.interceptor)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
