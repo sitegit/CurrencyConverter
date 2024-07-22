@@ -1,15 +1,14 @@
-package com.example.currencyconverter.presentation
+package com.example.currencyconverter.presentation.core
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
 import com.example.currencyconverter.presentation.navigation.AppNavGraph
 import com.example.currencyconverter.presentation.navigation.Screen
-import com.example.currencyconverter.presentation.screen.DetailScreen
-import com.example.currencyconverter.presentation.screen.MainScreen
+import com.example.currencyconverter.presentation.screen.detail.DetailScreen
+import com.example.currencyconverter.presentation.screen.main.MainScreen
 import com.example.currencyconverter.presentation.theme.CurrencyConverterTheme
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     },
                     detailScreenContent = {
                         DetailScreen(
-                            currency = it
+                            currency = it,
                         ) {
                             navHostController.popBackStack(route = Screen.Main.route, inclusive = false)
                         }

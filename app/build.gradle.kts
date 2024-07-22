@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.retrofit.gsonConverter)
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.lifecycle.viewmodel)
+    implementation(libs.dagger.core)
+    ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

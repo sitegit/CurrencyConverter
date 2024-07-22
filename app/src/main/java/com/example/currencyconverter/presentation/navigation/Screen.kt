@@ -1,6 +1,6 @@
 package com.example.currencyconverter.presentation.navigation
 
-import com.example.currencyconverter.presentation.screen.Currency
+import com.example.currencyconverter.domain.Currency
 
 sealed class Screen(
     val route: String

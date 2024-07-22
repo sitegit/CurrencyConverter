@@ -1,6 +1,5 @@
-package com.example.currencyconverter.presentation.screen
+package com.example.currencyconverter.presentation.screen.main
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,17 +45,19 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.currencyconverter.R
+import com.example.currencyconverter.getApplicationComponent
+import com.example.currencyconverter.domain.Currency
 
 @Composable
 fun MainScreen(
-    onClickNextScreen: (Currency) -> Unit,
-    viewModel: MainViewModel = viewModel()
+    onClickNextScreen: (Currency) -> Unit
 ) {
-    viewModel.getData()
+    val component = getApplicationComponent()
+    val viewModel: MainViewModel = viewModel(factory = component.getViewModelFactory())
+    val currency = viewModel.listCurrency.collectAsState()
 
-    Content(viewModel.listCurrency) { onClickNextScreen(it) }
+    Content(currency.value) { onClickNextScreen(it) }
 }
-
 
 @Composable
 private fun Content(
@@ -69,8 +71,8 @@ private fun Content(
             .navigationBarsPadding()
             .padding(all = 16.dp)
     ) {
-        var currency by rememberSaveable{ mutableStateOf(Currency()) }
-        Log.i("MyTag", currency.amount)
+        var currency by rememberSaveable { mutableStateOf(Currency()) }
+
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Bottom
@@ -93,12 +95,21 @@ private fun Content(
             }
 
         }
+
         Box(
             modifier = Modifier.weight(2f),
             contentAlignment = Alignment.BottomCenter
         ) {
+            var isEnabled by remember { mutableStateOf(true) }
+
             Button(
-                onClick = { onClickNextScreen(currency) },
+                onClick = {
+                    if (isEnabled) {
+                        isEnabled = false
+                        onClickNextScreen(currency)
+                    }
+                },
+                enabled = isEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.show_detail_btn))
@@ -108,7 +119,7 @@ private fun Content(
 }
 
 @Composable
-fun RowScope.DropDownListCurrency(
+private fun RowScope.DropDownListCurrency(
     currency: String,
     listCurrency: List<String>,
     modifier: Modifier = Modifier,

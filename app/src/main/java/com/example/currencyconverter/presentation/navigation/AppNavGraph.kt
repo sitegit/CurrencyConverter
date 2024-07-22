@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.example.currencyconverter.presentation.navigation.Screen.Companion.KEY_AMOUNT
 import com.example.currencyconverter.presentation.navigation.Screen.Companion.KEY_CURRENT_CURRENCY
 import com.example.currencyconverter.presentation.navigation.Screen.Companion.KEY_TARGET_CURRENCY
-import com.example.currencyconverter.presentation.screen.Currency
+import com.example.currencyconverter.domain.Currency
 
 @Composable
 fun AppNavGraph(
