@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.safe.args)
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
@@ -18,6 +21,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val key = property("apikey")?.toString() ?: error(
+            "Api key was not found, it must be added to gradle.properties"
+        )
+
+        buildConfigField("String", "EXCHANGE_API_KEY", "\"$key\"")
     }
 
     buildTypes {
@@ -38,9 +47,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.7"
     }
     packaging {
         resources {
@@ -51,6 +61,13 @@ android {
 
 dependencies {
 
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.gsonConverter)
+    implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.dagger.core)
+    ksp(libs.dagger.compiler)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,6 +76,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
