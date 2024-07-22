@@ -1,12 +1,12 @@
 package com.example.currencyconverter.di
 
-import com.example.currencyconverter.data.remote.ApiFactory
-import com.example.currencyconverter.data.remote.ApiService
-import com.example.currencyconverter.data.repository.CurrencyRepositoryImpl
+import com.example.currencyconverter.data.CurrencyRepositoryImpl
 import com.example.currencyconverter.domain.CurrencyRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import java.util.Calendar
+import java.util.Locale
 
 @Module
 interface DataModule {
@@ -19,8 +19,10 @@ interface DataModule {
 
         @AppScope
         @Provides
-        fun provideApiService(): ApiService {
-            return ApiFactory.apiService
-        }
+        fun provideCalendar(): Calendar = Calendar.getInstance()
+
+        @AppScope
+        @Provides
+        fun provideLocale(): Locale = Locale("ru")
     }
 }

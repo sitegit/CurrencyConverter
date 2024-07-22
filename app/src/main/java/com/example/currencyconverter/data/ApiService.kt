@@ -1,6 +1,5 @@
-package com.example.currencyconverter.data.remote
+package com.example.currencyconverter.data
 
-import com.example.currencyconverter.data.dto.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 

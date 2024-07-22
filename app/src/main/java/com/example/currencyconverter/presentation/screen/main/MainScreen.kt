@@ -6,12 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -45,52 +41,72 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.currencyconverter.R
+import com.example.currencyconverter.domain.DataState
+import com.example.currencyconverter.domain.UserInput
 import com.example.currencyconverter.getApplicationComponent
-import com.example.currencyconverter.domain.Currency
+import com.example.currencyconverter.presentation.common.ErrorScreen
+import com.example.currencyconverter.presentation.common.LoadingScreen
 
 @Composable
 fun MainScreen(
-    onClickNextScreen: (Currency) -> Unit
+    onClickNextScreen: (UserInput) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val component = getApplicationComponent()
     val viewModel: MainViewModel = viewModel(factory = component.getViewModelFactory())
-    val currency = viewModel.listCurrency.collectAsState()
+    val state = viewModel.listCurrency.collectAsState()
 
-    Content(currency.value) { onClickNextScreen(it) }
+    when (val currentState = state.value) {
+        DataState.Initial -> {}
+        DataState.Loading -> {
+            LoadingScreen(modifier = modifier)
+        }
+        is DataState.Success -> {
+            MainContent(
+                listCurrency = currentState.data,
+                onClickNextScreen = { onClickNextScreen(it) },
+                modifier = modifier
+            )
+        }
+        is DataState.Error -> {
+            ErrorScreen(
+                errorMessage = stringResource(R.string.error_load_currency_list),
+                onClick = { viewModel.loadData() },
+                modifier = modifier
+            )
+        }
+    }
 }
 
 @Composable
-private fun Content(
+private fun MainContent(
     listCurrency: List<String>,
-    onClickNextScreen: (Currency) -> Unit
+    onClickNextScreen: (UserInput) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(all = 16.dp)
+        modifier = modifier
     ) {
-        var currency by rememberSaveable { mutableStateOf(Currency()) }
+        var userInput by rememberSaveable { mutableStateOf(UserInput()) }
 
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Bottom
         ) {
-            CurrencyTextField(currency.currentCurrency) {
-                currency = currency.copy(amount = it)
+            CurrencyTextField(userInput.currentCurrency) {
+                userInput = userInput.copy(amount = it.ifEmpty { "0.0" })
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                DropDownListCurrency(currency.currentCurrency, listCurrency) {
-                    currency = currency.copy(currentCurrency = it)
+                DropDownListCurrency(userInput.currentCurrency, listCurrency) {
+                    userInput = userInput.copy(currentCurrency = it)
                 }
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                DropDownListCurrency(currency.targetCurrency, listCurrency) {
-                    currency = currency.copy(targetCurrency = it)
+                DropDownListCurrency(userInput.targetCurrency, listCurrency) {
+                    userInput = userInput.copy(targetCurrency = it)
                 }
             }
 
@@ -106,7 +122,7 @@ private fun Content(
                 onClick = {
                     if (isEnabled) {
                         isEnabled = false
-                        onClickNextScreen(currency)
+                        onClickNextScreen(userInput)
                     }
                 },
                 enabled = isEnabled,
@@ -186,7 +202,7 @@ private fun CurrencyTextField(
         label = { Text(stringResource(R.string.hint)) },
         singleLine = true,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-        prefix = { Text("$currency: ") },
+        prefix = { Text(stringResource(R.string.pref_currency_label, currency)) },
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done,
             keyboardType = KeyboardType.Number

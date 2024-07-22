@@ -6,7 +6,11 @@ class GetCurrencyListUseCase @Inject constructor(
     private val repository: CurrencyRepository
 ) {
 
-    suspend operator fun invoke(): List<String> {
-        return repository.getCurrencyList()
+    suspend operator fun invoke(): DataState<List<String>> {
+        return try {
+            DataState.Success(repository.getCurrencyList())
+        } catch (e: Exception) {
+            DataState.Error(e.message.toString())
+        }
     }
 }

@@ -4,6 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.currencyconverter.presentation.navigation.AppNavGraph
 import com.example.currencyconverter.presentation.navigation.Screen
@@ -20,24 +28,45 @@ class MainActivity : ComponentActivity() {
             CurrencyConverterTheme {
                 val navHostController = rememberNavController()
 
-                AppNavGraph(
+                SetupNavGraph(
                     navHostController = navHostController,
-                    mainScreenContent = {
-                        MainScreen(
-                            onClickNextScreen = {
-                                navHostController.navigate(Screen.Detail.getRouteWithArgs(it))
-                            }
-                        )
-                    },
-                    detailScreenContent = {
-                        DetailScreen(
-                            currency = it,
-                        ) {
-                            navHostController.popBackStack(route = Screen.Main.route, inclusive = false)
-                        }
-                    }
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                        .padding(all = 16.dp)
                 )
             }
         }
     }
+}
+
+@Composable
+private fun SetupNavGraph(
+    navHostController: NavHostController,
+    modifier: Modifier = Modifier
+) {
+    AppNavGraph(
+        navHostController = navHostController,
+        mainScreenContent = {
+            MainScreen(
+                onClickNextScreen = {
+                    navHostController.navigate(Screen.Detail.getRouteWithArgs(it))
+                },
+                modifier = modifier
+            )
+        },
+        detailScreenContent = {
+            DetailScreen(
+                userInput = it,
+                onClickBack = {
+                    navHostController.popBackStack(
+                        route = Screen.Main.route,
+                        inclusive = false
+                    )
+                },
+                modifier = modifier
+            )
+        }
+    )
 }

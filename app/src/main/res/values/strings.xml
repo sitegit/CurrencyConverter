@@ -3,4 +3,9 @@
     <string name="localized_description">Localized description</string>
     <string name="hint">Введите сумму</string>
     <string name="show_detail_btn">Сконвертировать</string>
+    <string name="retry_btn">Повторить</string>
+    <string name="error_convert_currency">Произошла ошибка при конвертации валюты, возможно отсутствует подключение к интернету</string>
+    <string name="update_last_time">Обновлено: %1$s</string>
+    <string name="error_load_currency_list">Не удалось загрузить список валют, проверьте подключение к интернету</string>
+    <string name="pref_currency_label">"%1$s: "</string>
 </resources>

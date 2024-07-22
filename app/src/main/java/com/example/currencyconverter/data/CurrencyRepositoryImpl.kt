@@ -1,32 +1,29 @@
-package com.example.currencyconverter.data.repository
+package com.example.currencyconverter.data
 
-import com.example.currencyconverter.data.remote.ApiService
 import com.example.currencyconverter.domain.Currency
-import com.example.currencyconverter.domain.CurrencyEntity
 import com.example.currencyconverter.domain.CurrencyRepository
+import com.example.currencyconverter.domain.UserInput
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 
 class CurrencyRepositoryImpl @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val calendar: Calendar,
+    private val locale: Locale
 ) : CurrencyRepository {
     private var cachedCurrencyList: List<String>? = null
 
-    override suspend fun getData(currency: Currency): CurrencyEntity{
-        val result = apiService.getData(currency.currentCurrency)
-        val lastTimeUpdate = formatTimestamp(result.lastUpdateTime)
-        val conversionRate = result.conversionRates[currency.targetCurrency]
+    override suspend fun getData(currency: UserInput): Currency {
+        val result: Response = apiService.getData(currency.currentCurrency)
+        val lastTimeUpdate: String = formatTimestamp(result.lastUpdateTime)
+        val conversionRate: Double? = result.conversionRates[currency.targetCurrency]
         val amountInTargetCurrency: Pair<Double, Double> = conversionRate?.let {
             convertCurrency(1.0, it) to convertCurrency(currency.amount.toDouble(), it)
-        } ?: throw IllegalArgumentException("Conversion rate not found for ${currency.targetCurrency}")
+        } ?: throw RuntimeException("Conversion rate not found for ${currency.targetCurrency}")
 
-        return CurrencyEntity(
-            currency,
-            amountInTargetCurrency,
-            lastTimeUpdate
-        )
+        return Currency(currency, amountInTargetCurrency, lastTimeUpdate)
     }
 
     override suspend fun getCurrencyList(): List<String> {
@@ -40,16 +37,10 @@ class CurrencyRepositoryImpl @Inject constructor(
     }
 
     private fun formatTimestamp(timestamp: Long): String {
-        val locale = Locale("ru")
-        val calendar = Calendar.getInstance()
-
-        calendar.timeInMillis = timestamp * 1000
-
         val timeFormat = SimpleDateFormat("HH:mm", locale)
         val dateFormat = SimpleDateFormat("MMM dd, yyyy", locale)
-        val time = timeFormat.format(calendar.time)
-        val dateStr = dateFormat.format(calendar.time)
+        calendar.timeInMillis = timestamp * 1000
 
-        return "Обновлено: $time, $dateStr"
+        return "${timeFormat.format(calendar.time)}, ${dateFormat.format(calendar.time)}"
     }
 }

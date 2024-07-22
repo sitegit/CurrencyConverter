@@ -1,14 +1,13 @@
 package com.example.currencyconverter.presentation.screen.detail
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,53 +17,82 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.currencyconverter.domain.CurrencyEntity
-import com.example.currencyconverter.getApplicationComponent
+import com.example.currencyconverter.R
 import com.example.currencyconverter.domain.Currency
-import java.text.NumberFormat
-import java.util.Locale
+import com.example.currencyconverter.domain.DataState
+import com.example.currencyconverter.domain.UserInput
+import com.example.currencyconverter.getApplicationComponent
+import com.example.currencyconverter.presentation.common.ErrorScreen
+import com.example.currencyconverter.presentation.common.LoadingScreen
 
 @Composable
 fun DetailScreen(
-    currency: Currency,
-    onClickBack: () -> Unit
+    userInput: UserInput,
+    onClickBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val component = getApplicationComponent()
-    val factory = DetailViewModel.provideFactory(component.detailViewModelFactory(), currency)
+    val factory = DetailViewModel
+        .provideFactory(component.detailViewModelFactory(), userInput)
     val viewModel: DetailViewModel = viewModel(factory = factory)
     val currencyState = viewModel.currencyData.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-    ) {
+    Column(modifier = modifier) {
         BackButton { onClickBack() }
+
+        when (val currentState = currencyState.value) {
+            DataState.Initial -> {}
+            DataState.Loading -> {
+                LoadingScreen(modifier = Modifier.fillMaxSize())
+            }
+            is DataState.Success -> {
+                DetailContent(
+                    currency = currentState.data,
+                    modifier = modifier
+                )
+            }
+            is DataState.Error -> {
+                ErrorScreen(
+                    errorMessage = stringResource(R.string.error_convert_currency),
+                    onClick = { viewModel.loadDetailData() },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailContent(
+    currency: Currency,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+    ) {
         Text(
-            text = currencyState.value.lastTimeUpdate,
+            text = stringResource(R.string.update_last_time, currency.lastTimeUpdate),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             textAlign = TextAlign.Center
         )
-        CurrencyCard(currencyState.value)
+        CurrencyCard(currency)
     }
 }
 
 @Composable
-private fun CurrencyCard(currency: CurrencyEntity) {
+private fun CurrencyCard(currency: Currency) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,6 +128,8 @@ private fun CurrencyCard(currency: CurrencyEntity) {
     }
 }
 
+
+@SuppressLint("DefaultLocale")
 @Composable
 private fun FormattedCurrencyText(
     baseCurrency: String,
@@ -108,18 +138,10 @@ private fun FormattedCurrencyText(
     targetAmount: Double,
     modifier: Modifier = Modifier,
     color: Color = Color.DarkGray,
-    fontSize: TextUnit = 22.sp,
-    locale: Locale = Locale.getDefault()
+    fontSize: TextUnit = 22.sp
 ) {
-    val numberFormat = remember(locale) {
-        NumberFormat.getNumberInstance(locale).apply {
-            minimumFractionDigits = 2
-            maximumFractionDigits = 2
-        }
-    }
-
-    val formattedCurrencyAmount = numberFormat.format(currencyAmount).replace(',', '.')
-    val formattedTargetAmount = numberFormat.format(targetAmount).replace(',', '.')
+    val formattedCurrencyAmount = String.format("%.2f", currencyAmount).replace(',', '.')
+    val formattedTargetAmount = String.format("%.2f", targetAmount).replace(',', '.')
 
     Text(
         text = "$formattedCurrencyAmount $baseCurrency = $formattedTargetAmount $targetCurrency",

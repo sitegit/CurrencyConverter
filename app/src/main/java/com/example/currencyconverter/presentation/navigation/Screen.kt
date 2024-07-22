@@ -1,6 +1,6 @@
 package com.example.currencyconverter.presentation.navigation
 
-import com.example.currencyconverter.domain.Currency
+import com.example.currencyconverter.domain.UserInput
 
 sealed class Screen(
     val route: String
@@ -11,7 +11,7 @@ sealed class Screen(
     data object Detail : Screen(ROUTE_DETAIL) {
         private const val ROUTE_FOR_ARGS = "detail"
 
-        fun getRouteWithArgs(currency: Currency): String {
+        fun getRouteWithArgs(currency: UserInput): String {
             return "$ROUTE_FOR_ARGS/${currency.currentCurrency}/${currency.targetCurrency}/${currency.amount}"
         }
     }
